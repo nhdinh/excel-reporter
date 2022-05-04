@@ -1,0 +1,159 @@
+name: .NET Desktop
+
+on:
+  push:
+    branches:  
+      - '*'
+    tags:
+      - '*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test_and_build:
+    name: "Test and Build"
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: ExcelReporter.sln
+      Project_Directory: ExcelReporter
+      #Test_Project_Path: ExcelReporter.Tests\ExcelReporter.Tests.csproj
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Make BuildConstants
+      shell: bash
+      run: |
+        tag=$(git describe --tags --abbrev=0)
+        repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
+        export build_consts_path="${Project_Directory}/BuildConstants.cs"
+        
+        echo "namespace ExcelReporter {" >> ${build_consts_path}
+        echo "public static class BuildConstants {" >> ${build_consts_path}
+        echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-{1}-Release\";" >> ${build_consts_path}
+        echo "}}" >> ${build_consts_path}
+
+    # Install the .NET MsBuild
+    #- name: Install .NET Core
+    #  uses: actions/setup-dotnet@v2
+    #  with:
+    #    dotnet-version: 5.0.x
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+       
+    # Setup NuGet
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.2
+
+    # Restore NuGet Packages
+    - name: Restore NuGet Packages
+      run: nuget restore $env:Solution_Name
+      
+    # Execute all unit tests in the solution
+    #- name: Execute unit tests
+    #  run: dotnet test $env:Test_Project_Path
+
+    # Build test
+    - name: Make a build
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+
+  release:
+    name: "Release"
+
+    needs: test_and_build
+
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        runtime_identifier: [win-x86, win-x64]
+
+    runs-on: windows-latest
+
+    env:
+      Project_Directory: ExcelReporter.sln
+      Project_Path: ExcelReporter\ExcelReporter.csproj
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Make BuildConstants
+      shell: bash
+      run: |
+        tag=$(git describe --tags --abbrev=0)
+        repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
+        export build_consts_path="${Project_Directory}/BuildConstants.cs"
+        
+        echo "namespace ExcelReporter {" >> ${build_consts_path}
+        echo "public static class BuildConstants {" >> ${build_consts_path}
+        echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-{1}-Release\";" >> ${build_consts_path}
+        echo "}}" >> ${build_consts_path}
+
+    - name: Modify version of the assembly
+      shell: bash
+      run: |
+        tag=$(git describe --tags --abbrev=0)
+        version=${tag/"v"/""}
+
+        sed -i "s/<AssemblyVersion>0.0.0.0<\/AssemblyVersion>/<AssemblyVersion>$version<\/AssemblyVersion>/g" ${Project_Path}
+        sed -i "s/<FileVersion>0.0.0.0<\/FileVersion>/<FileVersion>$version<\/FileVersion>/g" ${Project_Path}
+        
+    # Decode the base 64 encoded pfx and save the Signing_Certificate
+    - name: Decode the pfx
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+    - name: Build package
+      shell: bash
+      run: |
+        # Define some variables for things we need
+        tag=$(git describe --tags --abbrev=0)
+        release_name="TiemQuangCao-$tag-$RuntimeIdentifier-$Configuration"
+
+        # build everything
+        dotnet publish "$Project_Path" --framework "net5.0-windows" --runtime "$RuntimeIdentifier" -c "$Configuration" -o "$release_name"
+
+        # pack files
+        7z a -tzip "${release_name}.zip" "./${release_name}/*"
+
+        # Delete output directory
+        rm -r "$release_name"
+      env:
+        RuntimeIdentifier: ${{ matrix.runtime_identifier }}
+        Configuration: ${{ matrix.configuration }}
+
+    # publish
+    - name: Publish
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          TiemQuangCao-*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Remove the pfx
+    - name: Remove the pfx
+      run: Remove-Item -path $env:Project_Directory\GitHubActionsWorkflow.pfx
