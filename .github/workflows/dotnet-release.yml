@@ -22,6 +22,7 @@ jobs:
     env:
       Solution_Name: ExcelReporter.sln
       Project_Directory: ExcelReporter
+      Setup_Directory: SetupProject
       #Test_Project_Path: ExcelReporter.Tests\ExcelReporter.Tests.csproj
 
     steps:
@@ -33,7 +34,6 @@ jobs:
     - name: Make BuildConstants
       shell: bash
       run: |
-        tag=$(git describe --tags --abbrev=0)
         repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
         export build_consts_path="${Project_Directory}/BuildConstants.cs"
         
