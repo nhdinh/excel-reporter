@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # project-specific file
 BuildConstants.cs
+ExcelReporterFiles.wxs
