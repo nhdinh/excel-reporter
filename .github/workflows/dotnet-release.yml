@@ -73,7 +73,7 @@ jobs:
         $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-        sn.exe -i $certificatePath ${{ secrets.VS_KEY }}
+    #    sn.exe -i $certificatePath ${{ secrets.VS_KEY }}
 
     # Build test
     - name: Make a build
