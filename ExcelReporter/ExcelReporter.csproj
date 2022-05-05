@@ -48,10 +48,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>07E887C56FA258DD605F41859630A7EE8D0B6973</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>4861C33243DB5D188AC833606DF655E6839A90BD</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>ThangExcel_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>SigningCertificate.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>false</GenerateManifests>
@@ -67,6 +67,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutoUpdater.NET, Version=1.7.0.0, Culture=neutral, PublicKeyToken=501435c91b35f4bc, processorArchitecture=MSIL">
@@ -231,6 +234,7 @@
     <Content Include="templates\mt201_template.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="SigningCertificate.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
