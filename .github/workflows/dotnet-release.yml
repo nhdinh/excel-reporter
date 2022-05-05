@@ -65,6 +65,13 @@ jobs:
     # Execute all unit tests in the solution
     #- name: Execute unit tests
     #  run: dotnet test $env:Test_Project_Path
+        
+    # Decode the base 64 encoded pfx and save the Signing_Certificate
+    - name: Decode the pfx
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     # Build test
     - name: Make a build
