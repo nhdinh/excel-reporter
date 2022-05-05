@@ -41,7 +41,7 @@ jobs:
         echo "public static class BuildConstants {" >> ${build_consts_path}
         echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
         echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
-        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-{1}-Release\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-Release\";" >> ${build_consts_path}
         echo "}}" >> ${build_consts_path}
 
     # Install the .NET MsBuild
@@ -166,6 +166,9 @@ jobs:
         # pack files
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
         cp "./${Setup_Directory}/bin/${Configuration}/excel_reporter.msi" "${release_name}.msi"
+
+        # show files
+        ls excel-reporter*
       env:
         Configuration: ${{ matrix.configuration }}
 
@@ -174,7 +177,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          excel-reporter-*
+          excel-reporter*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
