@@ -152,15 +152,14 @@ jobs:
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     - name: Build package
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+        
+    - name: Copy artifacts
       shell: bash
       run: |
         # Define some variables for things we need
         tag=$(git describe --tags --abbrev=0)
-        release_name="excel-reporter-$tag-$Configuration"
-
-        # build everything
-        # dotnet publish "$Project_Path" --framework "net5.0-windows" --runtime "$RuntimeIdentifier" -c "$Configuration" -o "$release_name"
-        msbuild "${Solution_Name}" /p:Configuration="${Configuration}"
+        release_name="excel-reporter-$tag-$Configuration"        
 
         # pack files
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
