@@ -166,9 +166,6 @@ jobs:
         # pack files
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
         cp "./${Setup_Directory}/bin/${Configuration}/excel_reporter.msi" "${release_name}.msi"
-
-        # Delete output directory
-        rm -r "$release_name"
       env:
         Configuration: ${{ matrix.configuration }}
 
