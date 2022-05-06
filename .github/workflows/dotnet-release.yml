@@ -75,6 +75,7 @@ jobs:
       ProjectAssemblyInfo: ./ExcelReporter/Properties/AssemblyInfo.cs
       SetupProductFile: ./SetupProject/Product.wxs
       Configuration: Release
+      SignDir: ./signcert
 
     steps:
     - name: Checkout
@@ -121,8 +122,8 @@ jobs:
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration
         New-Item -Path "./signcert"
-        Move-Item -Path "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" -Destination "./signcert/"
-        Move-Item -Path "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" -Destination "./signcert/"
+        Move-Item -Path "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" -Destination "${env:SignDir}/ExcelReporter.exe"
+        Move-Item -Path "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" -Destination "${env:SignDir}/excel_reporter.msi"
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
@@ -131,7 +132,7 @@ jobs:
         cert-password: "${{ secrets.PFX_KEY }}"
         cert-sha1: "${{ secrets.PFX_HASH }}"
         cert-description: "Excel-Reporter"
-        folder: "./signcert"
+        folder: "${env:SignDir}"
         recursive: true
         timestamp-server: "http://timestamp.digicert.com"
         
@@ -144,15 +145,15 @@ jobs:
         release_name="excel-reporter-$tag-${Configuration,,}"
 
         # pack files
-        mv "./signcert/ExcelReporter.exe" "./${Project_Directory}/bin/${Configuration}/*"
+        mv "${SignDir}/ExcelReporter.exe" "./${Project_Directory}/bin/${Configuration}/*"
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
-        mv "./signcert/excel_reporter.msi" "${release_name}.msi"
+        mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
 
         # show files
         ls excel-reporter*
 
         # remove signcert
-        Remove-Item -Path "./signcert/" -Force
+        rm -rf "${SignDir}"
 
     # publish
     - name: Publish
