@@ -56,13 +56,6 @@ jobs:
     - name: Make a build
       run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
 
-    # Cache the build
-    - name: Cache build
-      uses: actions/upload-artifact@master
-      with:
-        name: build-artifacts
-        path: ./
-
 
   release:
     name: "Release artifact"
@@ -89,25 +82,18 @@ jobs:
       with:
         fetch-depth: 0
 
-    #- name: Make BuildConstants
-    #  shell: bash
-    #  run: |
-    #    repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-    #    export build_consts_path="${Project_Directory}/BuildConstants.cs"
+    - name: Make BuildConstants
+      shell: bash
+      run: |
+        repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
+        export build_consts_path="${Project_Directory}/BuildConstants.cs"
         
-    #    echo "namespace ExcelReporter {" >> ${build_consts_path}
-    #    echo "public static class BuildConstants {" >> ${build_consts_path}
-    #    echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
-    #    echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
-    #    echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
-    #    echo "}}" >> ${build_consts_path}
-
-    - name: Download artifact
-      uses: actions/download-artifact@master
-      with: 
-        name: build-artifacts
-        path: ./
-
+        echo "namespace ExcelReporter {" >> ${build_consts_path}
+        echo "public static class BuildConstants {" >> ${build_consts_path}
+        echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
+        echo "}}" >> ${build_consts_path}
 
     - name: Modify version of the assembly
       shell: bash
