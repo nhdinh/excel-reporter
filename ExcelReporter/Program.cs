@@ -17,11 +17,12 @@ namespace ExcelReporter
         {
             bool isDebug = false;
 #if DEBUG
-			isDebug = true;
+            isDebug = true;
 #endif
 
             // since debugging source always be the latest version, therefore no need to check for update in debug mode
             bool autoUpdate = true && !isDebug;
+            autoUpdate = true;
             if (autoUpdate)
             {
                 TryUpdateApplication();
@@ -34,7 +35,7 @@ namespace ExcelReporter
                 Settings.Default.UpgradeRequired = false;
                 Settings.Default.Save();
             }
-            
+
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
             System.Windows.Forms.Application.Run(new FrmMain());
@@ -63,9 +64,9 @@ namespace ExcelReporter
                 string downloadFileName = string.Format(BuildConstants.GITHUB_ASSET_NAME, latestRelease.TagName, Helpers.GetRuntimeIdentifier());
 
                 // if there is only source files in release, then stop the updater
-                if (latestRelease.Assets.Count <= 2) return;
+                if (latestRelease.Assets.Count == 0) return;
 
-                var downloadAsset = latestRelease.Assets.Where(a => a.Name.StartsWith(downloadFileName)).First();
+                var downloadAsset = latestRelease.Assets.Where(a => a.Name.StartsWith(downloadFileName) && a.Name.EndsWith(".zip")).First();
 
                 // if both latestVersion and downloadAsset are not null
                 if (latestVersion != null && downloadAsset != null)
