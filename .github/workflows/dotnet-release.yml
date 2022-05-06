@@ -56,6 +56,13 @@ jobs:
     - name: Make a build
       run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
 
+    # Cache the build
+    - name: Cache build
+      uses: actions/upload-artifact@master
+      with:
+        name: build-artifacts
+        path: ./
+
 
   release:
     name: "Release artifact"
@@ -82,19 +89,25 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Make BuildConstants
-      shell: bash
-      run: |
-        tag=$(git describe --tags --abbrev=0)
-        repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-        export build_consts_path="${Project_Directory}/BuildConstants.cs"
+    #- name: Make BuildConstants
+    #  shell: bash
+    #  run: |
+    #    repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
+    #    export build_consts_path="${Project_Directory}/BuildConstants.cs"
         
-        echo "namespace ExcelReporter {" >> ${build_consts_path}
-        echo "public static class BuildConstants {" >> ${build_consts_path}
-        echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
-        echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
-        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
-        echo "}}" >> ${build_consts_path}
+    #    echo "namespace ExcelReporter {" >> ${build_consts_path}
+    #    echo "public static class BuildConstants {" >> ${build_consts_path}
+    #    echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
+    #    echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
+    #    echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
+    #    echo "}}" >> ${build_consts_path}
+
+    - name: Download artifact
+      uses: actions/download-artifact@master
+      with: 
+        name: build-artifacts
+        path: ./
+
 
     - name: Modify version of the assembly
       shell: bash
@@ -119,17 +132,11 @@ jobs:
     
     # Build the package with MSBuild
     - name: Build package
-      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
-        
-    # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx and sign artifacts
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
-        $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-
-        "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" sign /f "${certificatePath}" /p "${{ secrets.PFX_KEY }}" "./${Project_Directory}/bin/${Configuration}/*.exe"
-        "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" sign /f "${certificatePath}" /p "${{ secrets.PFX_KEY }}" "./${SetupProject}/bin/${Configuration}/*.msi"
+        msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+        mkdir ./signcert
+        mv "${Project_Directory}/bin/${Configuration}/*.exe" ./signcert/
+        mv "${Setup_Directory}/bin/${Configuration}/*.msi" ./signcert/
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
@@ -138,7 +145,7 @@ jobs:
         cert-password: "${{ secrets.PFX_KEY }}"
         cert-sha1: "${{ secrets.PFX_HASH }}"
         cert-description: "Excel-Reporter"
-        folder: "./${SetupProject}/bin/${Configuration}/"
+        folder: "./signcert"
         recursive: true
         timestamp-server: "http://timestamp.digicert.com"
         
@@ -151,8 +158,9 @@ jobs:
         release_name="excel-reporter-$tag-${Configuration,,}"
 
         # pack files
+        mv "./signcert/*.exe" "./${Project_Directory}/bin/${Configuration}/*"
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
-        cp "./${Setup_Directory}/bin/${Configuration}/excel_reporter.msi" "${release_name}.msi"
+        mv "./signcert/excel_reporter.msi" "${release_name}.msi"
 
         # show files
         ls excel-reporter*
