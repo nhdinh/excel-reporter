@@ -124,7 +124,8 @@ jobs:
         mkdir "${env:SignDir}"
         mv "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
         mv "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" "${env:SignDir}"
-
+        
+    # sign artifacts
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
       with:
@@ -132,7 +133,7 @@ jobs:
         cert-password: "${{ secrets.PFX_KEY }}"
         cert-sha1: "${{ secrets.PFX_HASH }}"
         cert-description: "Excel-Reporter"
-        folder: "${env:SignDir}"
+        folder: "${SignDir}"
         recursive: true
         timestamp-server: "http://timestamp.digicert.com"
         
