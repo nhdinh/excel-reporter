@@ -13,17 +13,13 @@ jobs:
   test_and_build:
     name: "Test and Build"
 
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: windows-latest
 
     env:
       Solution_Name: ExcelReporter.sln
       Project_Directory: ExcelReporter
       Setup_Directory: SetupProject
-      #Test_Project_Path: ExcelReporter.Tests\ExcelReporter.Tests.csproj
+      Configuration: Release
 
     steps:
     - name: Checkout
@@ -41,14 +37,8 @@ jobs:
         echo "public static class BuildConstants {" >> ${build_consts_path}
         echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
         echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
-        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-Release\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
         echo "}}" >> ${build_consts_path}
-
-    # Install the .NET MsBuild
-    #- name: Install .NET Core
-    #  uses: actions/setup-dotnet@v2
-    #  with:
-    #    dotnet-version: 5.0.x
 
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
@@ -61,25 +51,10 @@ jobs:
     # Restore NuGet Packages
     - name: Restore NuGet Packages
       run: nuget restore $env:Solution_Name
-      
-    # Execute all unit tests in the solution
-    #- name: Execute unit tests
-    #  run: dotnet test $env:Test_Project_Path
-        
-    # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx and install strong name cert
-      run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
-        $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-
-    #    sn.exe -i $certificatePath ${{ secrets.VS_KEY }}
 
     # Build test
     - name: Make a build
       run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
 
 
   release:
@@ -88,9 +63,6 @@ jobs:
     needs: test_and_build
 
     if: startsWith(github.ref, 'refs/tags/v')
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
 
     runs-on: windows-latest
 
@@ -102,6 +74,7 @@ jobs:
       Setup_Directory: SetupProject
       ProjectAssemblyInfo: ./ExcelReporter/Properties/AssemblyInfo.cs
       SetupProductFile: ./SetupProject/Product.wxs
+      Configuration: Release
 
     steps:
     - name: Checkout
@@ -120,7 +93,7 @@ jobs:
         echo "public static class BuildConstants {" >> ${build_consts_path}
         echo "public const string GITHUB_USERNAME = \"${GITHUB_REPOSITORY_OWNER}\";" >> ${build_consts_path}
         echo "public const string GITHUB_REPOSITORY = \"${repo_name}\";" >> ${build_consts_path}
-        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-Release\";" >> ${build_consts_path}
+        echo "public const string GITHUB_ASSET_NAME = \"excel-reporter-{0}-release\";" >> ${build_consts_path}
         echo "}}" >> ${build_consts_path}
 
     - name: Modify version of the assembly
@@ -143,25 +116,28 @@ jobs:
     # Restore NuGet Packages
     - name: Restore NuGet Packages
       run: nuget restore $env:Solution_Name
+    
+    # Build the package with MSBuild
+    - name: Build package
+      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
         
     # Decode the base 64 encoded pfx and save the Signing_Certificate
-    - name: Decode the pfx
+    - name: Decode the pfx and sign artifacts
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
         $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-    - name: Build package
-      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+        signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${Project_Directory}/bin/${Configuration}/*.exe"
+        signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${SetupProject}/bin/${Configuration}/*.msi"
         
-    - name: Copy artifacts
+    # Copy artifacts and prepare a zip for upload
+    - name: Prepare artifacts
       shell: bash
       run: |
         # Define some variables for things we need
         tag=$(git describe --tags --abbrev=0)
-        release_name="excel-reporter-$tag-$Configuration"        
+        release_name="excel-reporter-$tag-${Configuration,,}"
 
         # pack files
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
@@ -169,8 +145,6 @@ jobs:
 
         # show files
         ls excel-reporter*
-      env:
-        Configuration: ${{ matrix.configuration }}
 
     # publish
     - name: Publish

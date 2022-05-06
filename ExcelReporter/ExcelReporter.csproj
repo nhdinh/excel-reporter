@@ -51,7 +51,7 @@
     <ManifestCertificateThumbprint>4861C33243DB5D188AC833606DF655E6839A90BD</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>SigningCertificate.pfx</ManifestKeyFile>
+    <ManifestKeyFile>KittenKoder.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>false</GenerateManifests>
@@ -72,7 +72,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>GitHubActionsWorkflow.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutoUpdater.NET, Version=1.7.0.0, Culture=neutral, PublicKeyToken=501435c91b35f4bc, processorArchitecture=MSIL">
@@ -237,7 +238,6 @@
     <Content Include="templates\mt201_template.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="GitHubActionsWorkflow.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
