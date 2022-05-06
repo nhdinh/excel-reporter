@@ -72,10 +72,10 @@ jobs:
       Setup_Path: SetupProject\SetupProject.wixproj
       Project_Directory: ExcelReporter
       Setup_Directory: SetupProject
-      ProjectAssemblyInfo: ./ExcelReporter/Properties/AssemblyInfo.cs
-      SetupProductFile: ./SetupProject/Product.wxs
+      ProjectAssemblyInfo: ExcelReporter/Properties/AssemblyInfo.cs
+      SetupProductFile: SetupProject/Product.wxs
       Configuration: Release
-      SignDir: ./signcert
+      SignDir: signcert
 
     steps:
     - name: Checkout
@@ -145,8 +145,8 @@ jobs:
         release_name="excel-reporter-$tag-${Configuration,,}"
 
         # pack files
-        mv "${SignDir}/ExcelReporter.exe" "./${Project_Directory}/bin/${Configuration}/*"
-        7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
+        mv "${SignDir}/ExcelReporter.exe" "${Project_Directory}/bin/${Configuration}/*"
+        7z a -tzip "${release_name}.zip" "${Project_Directory}/bin/${Configuration}/*"
         mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
 
         # show files
