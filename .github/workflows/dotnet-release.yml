@@ -121,8 +121,8 @@ jobs:
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration
         mkdir ./signcert
-        mv "${env:Project_Directory}/bin/${env:Configuration}/*.exe" ./signcert/
-        mv "${env:Setup_Directory}/bin/${env:Configuration}/*.msi" ./signcert/
+        mv "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" ./signcert/
+        mv "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" ./signcert/
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
@@ -144,7 +144,7 @@ jobs:
         release_name="excel-reporter-$tag-${Configuration,,}"
 
         # pack files
-        mv "./signcert/*.exe" "./${Project_Directory}/bin/${Configuration}/*"
+        mv "./signcert/ExcelReporter.exe" "./${Project_Directory}/bin/${Configuration}/*"
         7z a -tzip "${release_name}.zip" "./${Project_Directory}/bin/${Configuration}/*"
         mv "./signcert/excel_reporter.msi" "${release_name}.msi"
 
