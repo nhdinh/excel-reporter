@@ -121,8 +121,8 @@ jobs:
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration
         mkdir ./signcert
-        mv "${Project_Directory}/bin/${Configuration}/*.exe" ./signcert/
-        mv "${Setup_Directory}/bin/${Configuration}/*.msi" ./signcert/
+        mv "${env:Project_Directory}/bin/${env:Configuration}/*.exe" ./signcert/
+        mv "${env:Setup_Directory}/bin/${env:Configuration}/*.msi" ./signcert/
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
