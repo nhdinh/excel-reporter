@@ -121,9 +121,9 @@ jobs:
     - name: Build package
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration
-        New-Item -Path "./signcert"
-        Move-Item -Path "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" -Destination "${env:SignDir}/ExcelReporter.exe"
-        Move-Item -Path "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" -Destination "${env:SignDir}/excel_reporter.msi"
+        mkdir "${env:SignDir}"
+        mv "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
+        mv "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" "${env:SignDir}"
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
