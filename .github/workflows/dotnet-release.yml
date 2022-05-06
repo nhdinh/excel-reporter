@@ -128,8 +128,19 @@ jobs:
         $certificatePath = Join-Path -Path $env:Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-        signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${Project_Directory}/bin/${Configuration}/*.exe"
-        signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${SetupProject}/bin/${Configuration}/*.msi"
+        #signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${Project_Directory}/bin/${Configuration}/*.exe"
+        #signtool /f $certificatePath /p "${{ secrets.PFX_KEY }}" "./${SetupProject}/bin/${Configuration}/*.msi"
+
+    - name: Sign artifact
+      uses: GabrielAcostaEngler/signtool-code-sign@main
+      with:
+        certificate: "${{ secrets.BASE64_ENCODED_PFX }}"
+        cert-password: "${{ secrets.PFX_KEY }}"
+        cert-sha1: "${{ secrets.PFX_HASH }}"
+        cert-description: "Excel-Reporter"
+        folder: "./${SetupProject}/bin/${Configuration}/"
+        recursive: true
+        timestamp-server: "http://timestamp.digicert.com"
         
     # Copy artifacts and prepare a zip for upload
     - name: Prepare artifacts
