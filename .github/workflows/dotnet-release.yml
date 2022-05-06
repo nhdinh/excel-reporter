@@ -151,6 +151,9 @@ jobs:
         # show files
         ls excel-reporter*
 
+        # remove signcert
+        Remove-Item -Path "./signcert/" -Force
+
     # publish
     - name: Publish
       uses: softprops/action-gh-release@v1
