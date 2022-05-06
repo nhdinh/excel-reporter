@@ -22,7 +22,6 @@ namespace ExcelReporter
 
             // since debugging source always be the latest version, therefore no need to check for update in debug mode
             bool autoUpdate = true && !isDebug;
-            autoUpdate = true;
             if (autoUpdate)
             {
                 TryUpdateApplication();

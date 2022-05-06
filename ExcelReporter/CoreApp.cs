@@ -11,11 +11,10 @@ namespace ExcelReporter
 {
     internal class CoreApp : INotifyPropertyChanged
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static CoreApp _instance = null;
         private AppConfig _appConfig;
         private IList<DataReport> _reports = null;
-        //private IList<WorkFileInfo> _workFiles = null;
 
         private CoreApp()
         {

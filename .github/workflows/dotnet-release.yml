@@ -1,4 +1,4 @@
-name: .NET Desktop
+name: .NET Framework Build
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
   pull_request:
     branches: [ master ]
 
+
 jobs:
   test_and_build:
     name: "Test and Build"
@@ -18,7 +19,9 @@ jobs:
     env:
       Solution_Name: ExcelReporter.sln
       Project_Directory: ExcelReporter
-      Setup_Directory: SetupProject
+      Test_Project: ExcelReporter.Tests/ExcelReporter.Tests.csproj
+      Test_Library: ExcelReporter.Tests.dll
+      Test_Directory: ExcelReporter.Tests
       Configuration: Release
 
     steps:
@@ -47,14 +50,18 @@ jobs:
     # Setup NuGet
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.6
-
+  
     # Restore NuGet Packages
     - name: Restore NuGet Packages
       run: nuget restore $env:Solution_Name
 
-    # Build test
-    - name: Make a build
+    # Build 
+    - name: Build solution
       run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+
+    # Test
+    - name: Run test
+      run: vstest.console.exe "${env:Test_Directory}/bin/${env:Configuration}/${env:Test_Library}" /Platform:x64
 
 
   release:
