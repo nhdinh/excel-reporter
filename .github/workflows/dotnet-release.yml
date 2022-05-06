@@ -133,7 +133,7 @@ jobs:
         cert-password: "${{ secrets.PFX_KEY }}"
         cert-sha1: "${{ secrets.PFX_HASH }}"
         cert-description: "Excel-Reporter"
-        folder: "${SignDir}"
+        folder: "${{ env.SignDir }}"
         recursive: true
         timestamp-server: "http://timestamp.digicert.com"
         
