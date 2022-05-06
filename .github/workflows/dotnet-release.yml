@@ -120,9 +120,9 @@ jobs:
     - name: Build package
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration
-        mkdir ./signcert
-        mv "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" ./signcert/
-        mv "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" ./signcert/
+        New-Item -Path "./signcert"
+        Move-Item -Path "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" -Destination "./signcert/"
+        Move-Item -Path "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" -Destination "./signcert/"
 
     - name: Sign artifact
       uses: GabrielAcostaEngler/signtool-code-sign@main
@@ -159,7 +159,3 @@ jobs:
           excel-reporter*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Project_Directory\GitHubActionsWorkflow.pfx
