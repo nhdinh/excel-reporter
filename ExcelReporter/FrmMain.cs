@@ -101,14 +101,9 @@ namespace ExcelReporter
 
             // default design size
             var defaultSize = new Size(697, 403);
-            if (Settings.Default.LastWindowSize != null && Settings.Default.LastWindowSize.Width >= defaultSize.Width && Settings.Default.LastWindowSize.Height >= defaultSize.Height)
-            {
-                this.Size = Settings.Default.LastWindowSize;
-            }
-            else
-            {
-                this.Size = defaultSize;
-            }
+            this.Size = Settings.Default.LastWindowSize != null && Settings.Default.LastWindowSize.Width >= defaultSize.Width && Settings.Default.LastWindowSize.Height >= defaultSize.Height
+                ? Settings.Default.LastWindowSize
+                : defaultSize;
         }
 
         /// <summary>
@@ -126,7 +121,6 @@ namespace ExcelReporter
                 Tag = report.Tag
             };
             tabPage.Controls.Add(tabContent);
-            //tabContent.Anchor = AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom | AnchorStyles.Left;
             tabContent.Dock = DockStyle.Fill;
 
             return tabPage;

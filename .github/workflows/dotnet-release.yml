@@ -19,6 +19,7 @@ jobs:
       ProjectDir: ExcelReporter
       TestOutputLibrary: ExcelReporter.Tests.dll
       TestDir: ExcelReporter.Tests
+      TestProject: ExcelReporter.Tests.csproj
       Configuration: Release
 
     steps:
@@ -56,13 +57,11 @@ jobs:
     - name: Restore NuGet Packages
       run: nuget restore $env:SolutionFile
 
-    # Build 
-    - name: Build solution
-      run: msbuild $env:SolutionFile /p:Configuration=$env:Configuration
-
     # Test
     - name: Run test
-      run: vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}" /Platform:x64
+      run: |
+        msbuild "${env:TestDir}/${env:TestProject}" /p:Configuration=$env:Configuration
+        vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}"
 
 
   release:
