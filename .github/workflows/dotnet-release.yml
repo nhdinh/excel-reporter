@@ -65,7 +65,7 @@ jobs:
     - name: Run test
       run: |
         msbuild "${env:TestDir}/${env:TestProject}" /p:Configuration=$env:Configuration /p:Platform=$env:Platform
-        vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}"
+        vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}" /Platform:$env:Platform
       env:
         Configuration: ${{ matrix.configuration }}
         Platform: ${{ matrix.platform }}
