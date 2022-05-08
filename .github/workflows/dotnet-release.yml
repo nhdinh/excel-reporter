@@ -14,13 +14,17 @@ jobs:
 
     runs-on: windows-latest
 
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x86, x64]
+
     env:
       SolutionFile: ExcelReporter.sln
       ProjectDir: ExcelReporter
       TestOutputLibrary: ExcelReporter.Tests.dll
       TestDir: ExcelReporter.Tests
       TestProject: ExcelReporter.Tests.csproj
-      Configuration: Release
 
     steps:
     - name: Checkout
@@ -60,8 +64,11 @@ jobs:
     # Test
     - name: Run test
       run: |
-        msbuild "${env:TestDir}/${env:TestProject}" /p:Configuration=$env:Configuration
+        msbuild "${env:TestDir}/${env:TestProject}" /p:Configuration=$env:Configuration /p:Platform=$env:Platform
         vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}"
+      env:
+        Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
 
 
   release:
