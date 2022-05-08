@@ -20,7 +20,7 @@ jobs:
 
     env:
       SolutionFile: ExcelReporter.sln
-      ProjectDir: ExcelReporter
+      ExcelReporterDir: ExcelReporter
       TestOutputLibrary: ExcelReporter.Tests.dll
       TestDir: ExcelReporter.Tests
       TestProject: ExcelReporter.Tests.csproj
@@ -35,7 +35,7 @@ jobs:
       shell: bash
       run: |
         repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-        export build_consts_path="${ProjectDir}/BuildConstants.cs"
+        export build_consts_path="${ExcelReporterDir}/BuildConstants.cs"
         
         echo "namespace ExcelReporter {" >> ${build_consts_path}
         echo "public static class BuildConstants {" >> ${build_consts_path}
@@ -63,16 +63,8 @@ jobs:
     # Test
     - name: Run test
       run: |
-        msbuild "${env:TestDir}/${env:TestProject}" /p:Configuration=$env:Configuration
+        msbuild "${env:SolutionFile}" /p:Configuration=$env:Configuration
         vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}"
-      env:
-        Configuration: ${{ matrix.configuration }}
-
-    # Test build
-    - name: Test build
-      run: |
-        msbuild "${env:ProjectDir}/${env:ProjectDir}.csproj" /p:Configuration=$env:Configuration
-        msbuild "SetupProject/SetupProject.wixproj" /p:Configuration=$env:Configuration
       env:
         Configuration: ${{ matrix.configuration }}
 
@@ -86,7 +78,7 @@ jobs:
 
     env:
       SolutionFile: ExcelReporter.sln
-      ProjectDir: ExcelReporter
+      ExcelReporterDir: ExcelReporter
       SetupDir: SetupProject
       ProjectAssemblyInfo: ExcelReporter/Properties/AssemblyInfo.cs
       SetupProductFile: SetupProject/Product.wxs
@@ -103,7 +95,7 @@ jobs:
       shell: bash
       run: |
         repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-        export build_consts_path="${ProjectDir}/BuildConstants.cs"
+        export build_consts_path="${ExcelReporterDir}/BuildConstants.cs"
         
         echo "namespace ExcelReporter {" >> ${build_consts_path}
         echo "public static class BuildConstants {" >> ${build_consts_path}
@@ -138,7 +130,7 @@ jobs:
       run: |
         msbuild $env:SolutionFile /p:Configuration=$env:Configuration
         mkdir "${env:SignDir}"
-        mv "${env:ProjectDir}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
+        mv "${env:ExcelReporterDir}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
         mv "${env:SetupDir}/bin/${env:Configuration}/excel_reporter.msi" "${env:SignDir}"
         
     # sign artifacts
@@ -162,8 +154,8 @@ jobs:
         release_name="excel-reporter-${tag}-${Configuration,,}"
 
         # pack files
-        mv "${SignDir}/ExcelReporter.exe" "${ProjectDir}/bin/${Configuration}/*"
-        7z a -tzip "${release_name}.zip" "${ProjectDir}/bin/${Configuration}/*"
+        mv "${SignDir}/ExcelReporter.exe" "${ExcelReporterDir}/bin/${Configuration}/*"
+        7z a -tzip "${release_name}.zip" "${ExcelReporterDir}/bin/${Configuration}/*"
         mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
 
         # show files
