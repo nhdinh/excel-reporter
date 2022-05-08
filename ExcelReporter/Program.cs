@@ -4,6 +4,7 @@ using Octokit;
 using System;
 using System.IO;
 using System.Linq;
+using static System.Environment;
 
 namespace ExcelReporter
 {
@@ -15,17 +16,10 @@ namespace ExcelReporter
         [STAThread]
         private static void Main()
         {
-            bool isDebug = false;
-#if DEBUG
-            isDebug = true;
-#endif
-
+#if !DEBUG
             // since debugging source always be the latest version, therefore no need to check for update in debug mode
-            bool autoUpdate = true && !isDebug;
-            if (autoUpdate)
-            {
-                TryUpdateApplication();
-            }
+            Program.TryUpdateApplication();
+#endif
 
             // check if the application is need to be upgraded and copy the settings from older version to this version
             if (Settings.Default.UpgradeRequired)
@@ -35,14 +29,35 @@ namespace ExcelReporter
                 Settings.Default.Save();
             }
 
+            // make some settings to be default on first launch
+            Program.buildSettingsFirstLaunch();
+
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
             System.Windows.Forms.Application.Run(new FrmMain());
         }
 
         /// <summary>
+        /// Set some settings on first launch
+        /// </summary>
+        private static void buildSettingsFirstLaunch()
+        {
+            bool settingsChanged = false;
+
+            if (string.IsNullOrEmpty(Settings.Default.ReportsSaveLocation))
+            {
+                Settings.Default.ReportsSaveLocation = Path.Combine(GetFolderPath(SpecialFolder.MyDocuments), "Reports");
+                settingsChanged = true;
+            }
+
+            if (settingsChanged)
+                Settings.Default.Save();
+        }
+
+        /// <summary>
         /// Try getting update information from github releases
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1144:Unused private types or members should be removed", Justification = "<Pending>")]
         private static async void TryUpdateApplication()
         {
             var client = new GitHubClient(new ProductHeaderValue(BuildConstants.GITHUB_REPOSITORY));
@@ -58,14 +73,14 @@ namespace ExcelReporter
 
                 // get remote version
                 var latestVersion = Helpers.GithubTagToVersion(latestRelease.TagName);
-                var productVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+                Version productVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-                string downloadFileName = string.Format(BuildConstants.GITHUB_ASSET_NAME, latestRelease.TagName, Helpers.GetRuntimeIdentifier());
+                string downloadFileName = string.Format(BuildConstants.GITHUB_ASSET_NAME, latestRelease.TagName);
 
                 // if there is only source files in release, then stop the updater
                 if (latestRelease.Assets.Count == 0) return;
 
-                var downloadAsset = latestRelease.Assets.Where(a => a.Name.StartsWith(downloadFileName) && a.Name.EndsWith(".zip")).First();
+                var downloadAsset = latestRelease.Assets.First(a => a.Name.StartsWith(downloadFileName) && a.Name.EndsWith(".zip"));
 
                 // if both latestVersion and downloadAsset are not null
                 if (latestVersion != null && downloadAsset != null)

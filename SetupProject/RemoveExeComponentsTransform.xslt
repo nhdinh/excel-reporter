@@ -20,8 +20,7 @@
     -->
 	<xsl:key
         name="ExeToRemove"
-        match="wix:Component[ substring( wix:File/@Source, string-length( wix:File/@Source ) - 11 ) = 'Reporter.exe' ]"  use="@Id"
-    />
+        match="wix:Component[ substring( wix:File/@Source, string-length( wix:File/@Source ) - 11 ) = 'Reporter.exe' ]"  use="@Id" />
 	<!-- Get the last 11 characters of a string using `substring( s, len(s) - 11 )`, it uses -11 and not -12 because XSLT uses 1-based indexes, not 0-based indexes. -->
 
 	<!-- We need to remove the exe.config file too -->
@@ -32,8 +31,7 @@
 	<xsl:key
         name="PdbToRemove"
         match="wix:Component[ substring( wix:File/@Source, string-length( wix:File/@Source ) - 3 ) = '.pdb' ]"
-        use="@Id"
-    />
+        use="@Id" />
 
 	<!-- By default, copy all elements and nodes into the output... -->
 	<xsl:template match="@*|node()">
@@ -46,5 +44,4 @@
 	<xsl:template match="*[ self::wix:Component or self::wix:ComponentRef ][ key( 'ExeToRemove', @Id ) ]" />
 	<xsl:template match="*[ self::wix:Component or self::wix:ComponentRef ][ key( 'ExeConfigToRemove', @Id ) ]" />
 	<xsl:template match="*[ self::wix:Component or self::wix:ComponentRef ][ key( 'PdbToRemove', @Id ) ]" />
-
 </xsl:stylesheet>

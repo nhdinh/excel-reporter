@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using ExcelReporter.Properties;
+using NLog;
 using System;
 using System.Drawing;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace ExcelReporter
     public partial class FrmMain : Form
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private CoreApp app;
+        private readonly CoreApp app;
 
         public FrmMain()
         {
@@ -21,7 +22,7 @@ namespace ExcelReporter
             this.app = CoreApp.GetInstance();
 
             // assign the handler for WorkingFilesChanged
-            this.app.PropertyChanged += AppData_PropertyChanged;
+            this.app.PropertyChanged += appData_PropertyChanged;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace ExcelReporter
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void AppData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void appData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             Helpers.SaveRecentFile(this.app.WorkFiles);
 
@@ -85,47 +86,28 @@ namespace ExcelReporter
             }
         }
 
-        /// <summary>
-        /// handle actions when form is closed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            try
-            {
-                this.app.Config.LastWindowSize = this.Size;
-                this.app.Config.LastWindowLocation = this.Location;
-
-                Helpers.SaveRecentFile(this.app.WorkFiles);
-                Helpers.SaveAppConfig(this.app.Config);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error");
-            }
-        }
-
-        private void FrmMain_Load(object sender, EventArgs e)
+        private void frmMain_Load(object sender, EventArgs e)
         {
             // set window size and location
-            if (this.app.Config.LastWindowLocation != null)
+            if (Settings.Default.LastWindowLocation != null)
             {
-                if (this.app.Config.LastWindowLocation.X < Screen.PrimaryScreen.Bounds.Width && this.app.Config.LastWindowLocation.Y < Screen.PrimaryScreen.Bounds.Height)
-                    this.Location = this.app.Config.LastWindowLocation;
+                if (Settings.Default.LastWindowLocation.X < Screen.PrimaryScreen.Bounds.Width && Settings.Default.LastWindowLocation.Y < Screen.PrimaryScreen.Bounds.Height)
+                    this.Location = Settings.Default.LastWindowLocation;
             }
             else
             {
-                this.StartPosition = FormStartPosition.CenterScreen;
+                this.Location = new Point(0, 0);
             }
 
-            if (this.app.Config.LastWindowSize != null)
+            // default design size
+            var defaultSize = new Size(697, 403);
+            if (Settings.Default.LastWindowSize != null && Settings.Default.LastWindowSize.Width >= defaultSize.Width && Settings.Default.LastWindowSize.Height >= defaultSize.Height)
             {
-                this.Size = this.app.Config.LastWindowSize;
+                this.Size = Settings.Default.LastWindowSize;
             }
             else
             {
-                this.Size = new Size(697, 403);
+                this.Size = defaultSize;
             }
         }
 
@@ -139,8 +121,10 @@ namespace ExcelReporter
             TabContent tabContent = new TabContent(report);
             var reportInfo = report.GenerateWorkFile();
 
-            TabPage tabPage = new TabPage(String.Format("{0} - {1}", reportInfo.GetFileName(), reportInfo.SheetName));
-            tabPage.Tag = report.Tag;
+            TabPage tabPage = new TabPage(String.Format("{0} - {1}", reportInfo.GetFileName(), reportInfo.SheetName))
+            {
+                Tag = report.Tag
+            };
             tabPage.Controls.Add(tabContent);
             //tabContent.Anchor = AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom | AnchorStyles.Left;
             tabContent.Dock = DockStyle.Fill;
@@ -186,10 +170,37 @@ namespace ExcelReporter
 
         private void exportFromOpenFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            FrmExportConfig frm = new FrmExportConfig();
-            DialogResult res = frm.ShowDialog();
-            if (res == DialogResult.OK)
+            if (this.app.Reports.Count > 0)
             {
+                FrmExportConfig frm = new FrmExportConfig();
+                frm.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show(
+                    "The exporter require the source data is opened first. Please open a data file.",
+                    "Data source is required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// handle actions when form is closed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                Settings.Default.LastWindowSize = this.Size;
+                Settings.Default.LastWindowLocation = this.Location;
+
+                // save the settings
+                Settings.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
             }
         }
     }

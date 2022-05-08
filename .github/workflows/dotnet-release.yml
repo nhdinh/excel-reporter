@@ -2,10 +2,8 @@ name: .NET Framework Build
 
 on:
   push:
-    branches:  
-      - '*'
-    tags:
-      - '*'
+    branches: [ '*' ]
+    tags: [ '*' ]
   pull_request:
     branches: [ master ]
 
@@ -17,11 +15,10 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ExcelReporter.sln
-      Project_Directory: ExcelReporter
-      Test_Project: ExcelReporter.Tests/ExcelReporter.Tests.csproj
-      Test_Library: ExcelReporter.Tests.dll
-      Test_Directory: ExcelReporter.Tests
+      SolutionFile: ExcelReporter.sln
+      ProjectDir: ExcelReporter
+      TestOutputLibrary: ExcelReporter.Tests.dll
+      TestDir: ExcelReporter.Tests
       Configuration: Release
 
     steps:
@@ -34,7 +31,7 @@ jobs:
       shell: bash
       run: |
         repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-        export build_consts_path="${Project_Directory}/BuildConstants.cs"
+        export build_consts_path="${ProjectDir}/BuildConstants.cs"
         
         echo "namespace ExcelReporter {" >> ${build_consts_path}
         echo "public static class BuildConstants {" >> ${build_consts_path}
@@ -57,32 +54,28 @@ jobs:
   
     # Restore NuGet Packages
     - name: Restore NuGet Packages
-      run: nuget restore $env:Solution_Name
+      run: nuget restore $env:SolutionFile
 
     # Build 
     - name: Build solution
-      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+      run: msbuild $env:SolutionFile /p:Configuration=$env:Configuration
 
     # Test
     - name: Run test
-      run: vstest.console.exe "${env:Test_Directory}/bin/${env:Configuration}/${env:Test_Library}" /Platform:x64
+      run: vstest.console.exe "${env:TestDir}/bin/${env:Configuration}/${env:TestOutputLibrary}" /Platform:x64
 
 
   release:
     name: "Release artifact"
-
     needs: test_and_build
 
     if: startsWith(github.ref, 'refs/tags/v')
-
     runs-on: windows-latest
 
     env:
-      Solution_Name: ExcelReporter.sln
-      Project_Path: ExcelReporter\ExcelReporter.csproj
-      Setup_Path: SetupProject\SetupProject.wixproj
-      Project_Directory: ExcelReporter
-      Setup_Directory: SetupProject
+      SolutionFile: ExcelReporter.sln
+      ProjectDir: ExcelReporter
+      SetupDir: SetupProject
       ProjectAssemblyInfo: ExcelReporter/Properties/AssemblyInfo.cs
       SetupProductFile: SetupProject/Product.wxs
       Configuration: Release
@@ -98,7 +91,7 @@ jobs:
       shell: bash
       run: |
         repo_name=${GITHUB_REPOSITORY/"${GITHUB_REPOSITORY_OWNER}/"/""}
-        export build_consts_path="${Project_Directory}/BuildConstants.cs"
+        export build_consts_path="${ProjectDir}/BuildConstants.cs"
         
         echo "namespace ExcelReporter {" >> ${build_consts_path}
         echo "public static class BuildConstants {" >> ${build_consts_path}
@@ -126,15 +119,15 @@ jobs:
 
     # Restore NuGet Packages
     - name: Restore NuGet Packages
-      run: nuget restore $env:Solution_Name
+      run: nuget restore $env:SolutionFile
     
     # Build the package with MSBuild
     - name: Build package
       run: |
-        msbuild $env:Solution_Name /p:Configuration=$env:Configuration
+        msbuild $env:SolutionFile /p:Configuration=$env:Configuration
         mkdir "${env:SignDir}"
-        mv "${env:Project_Directory}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
-        mv "${env:Setup_Directory}/bin/${env:Configuration}/excel_reporter.msi" "${env:SignDir}"
+        mv "${env:ProjectDir}/bin/${env:Configuration}/ExcelReporter.exe" "${env:SignDir}"
+        mv "${env:SetupDir}/bin/${env:Configuration}/excel_reporter.msi" "${env:SignDir}"
         
     # sign artifacts
     - name: Sign artifact
@@ -154,11 +147,11 @@ jobs:
       run: |
         # Define some variables for things we need
         tag=$(git describe --tags --abbrev=0)
-        release_name="excel-reporter-$tag-${Configuration,,}"
+        release_name="excel-reporter-${tag}-${Configuration,,}"
 
         # pack files
-        mv "${SignDir}/ExcelReporter.exe" "${Project_Directory}/bin/${Configuration}/*"
-        7z a -tzip "${release_name}.zip" "${Project_Directory}/bin/${Configuration}/*"
+        mv "${SignDir}/ExcelReporter.exe" "${ProjectDir}/bin/${Configuration}/*"
+        7z a -tzip "${release_name}.zip" "${ProjectDir}/bin/${Configuration}/*"
         mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
 
         # show files

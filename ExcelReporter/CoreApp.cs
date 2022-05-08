@@ -1,4 +1,4 @@
-﻿using NLog;
+﻿using ExcelReporter.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,15 +11,31 @@ namespace ExcelReporter
 {
     internal class CoreApp : INotifyPropertyChanged
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        //private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static CoreApp _instance = null;
-        private AppConfig _appConfig;
+
         private IList<DataReport> _reports = null;
+        private readonly HeaderField[] headerFields = null;
+
+        private readonly string[] defaultHeaderLabels = new string[] {
+            "Type", "SN", "Report No.", "Inspected Date", "Test Temp.", "Concentration", "UV", "Visible light", "Ass'y No", "Remark", "Shift", "INSPECTOR", "Part No."
+        };
+
+        private readonly Type[] defaultHeaderColTypes = new Type[] {
+            typeof(string), typeof(string), typeof(string), typeof(DateTime), typeof(int), typeof(double), typeof(int), typeof(double), typeof(string), typeof(string), typeof(string), typeof(string), typeof(string), typeof(string)
+        };
 
         private CoreApp()
         {
-            this._appConfig = Helpers.LoadAppConfigFromJson();
-            this._appConfig.DefaultHeaderFields = new HeaderField[] {
+            var defaultHeaderFieldLabels = this.getHeaderFieldLabelsFromSettings();
+            var defaultHeaderFieldColTypes = this.getHeaderFieldColTypesFromSettings();
+
+            if (defaultHeaderFieldLabels.Length == defaultHeaderFieldColTypes.Length && defaultHeaderFieldLabels.Length > 0)
+            {
+                this.headerFields = this.makeHeaderFields(defaultHeaderFieldLabels, defaultHeaderFieldColTypes);
+            }
+            else
+                this.headerFields = new HeaderField[] {
                     new HeaderField("Type", typeof(string)),
                     new HeaderField("SN", typeof(string)),
                     new HeaderField("Report No.", typeof(string)),
@@ -37,13 +53,57 @@ namespace ExcelReporter
             this._reports = new List<DataReport>();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public AppConfig Config
+        private HeaderField[] makeHeaderFields(string[] defaultHeaderFieldLabels, Type[] defaultHeaderFieldColTypes)
         {
-            get { return this._appConfig; }
-            internal set { this._appConfig = value; }
+            // TODO: Implement this
+            throw new NotImplementedException();
         }
+
+        private Type[] getHeaderFieldColTypesFromSettings()
+        {
+            Type[] types = null;
+            string storedTypes = Settings.Default.DefaultHeaderFieldColTypes;
+
+            if (!string.IsNullOrEmpty(storedTypes))
+            {
+                string[] typeStrings = storedTypes.Split(',');
+                types = new Type[typeStrings.Length];
+
+                for (int i = 0; i < typeStrings.Length; i++)
+                {
+                    types[i] = Type.GetType(typeStrings[i]);
+                }
+            }
+
+            // if still cannot get types from settings, make it out with default types
+            if (types == null || types.Length == 0)
+            {
+                return this.defaultHeaderColTypes;
+            }
+
+            return types;
+        }
+
+        private string[] getHeaderFieldLabelsFromSettings()
+        {
+            string[] labels = null;
+            string storedLabels = Settings.Default.DefaultHeaderFieldLabels;
+            if (!string.IsNullOrEmpty(storedLabels))
+            {
+                labels = storedLabels.Split(',');
+                labels = labels.Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            }
+
+            // if still cannot get labels from settings, make it out with default labels
+            if (labels == null || labels.Length == 0)
+            {
+                return this.defaultHeaderLabels;
+            }
+
+            return labels;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public IList<DataReport> Reports
         {
@@ -57,7 +117,6 @@ namespace ExcelReporter
         {
             get
             {
-                //return _workFiles;
                 return this._reports.Select(x => x.WorkFile).ToList();
             }
 
@@ -68,7 +127,7 @@ namespace ExcelReporter
                     var loadedWorkFiles = this._reports.Select(r => r.WorkFile).ToList();
                     if (!loadedWorkFiles.Contains((WorkFileInfo)value))
                     {
-                        NotifyPropertyChanged("");
+                        notifyPropertyChanged("");
                     }
                 }
             }
@@ -82,6 +141,12 @@ namespace ExcelReporter
             return _instance;
         }
 
+        /// <summary>
+        /// Make data report from work file. The return data is formed of DataSet contains 2 tables: source, report_key
+        /// </summary>
+        /// <param name="dateFrom"></param>
+        /// <param name="dateTo"></param>
+        /// <returns></returns>
         internal DataSet MakeReportData(DateTime dateFrom, DateTime dateTo)
         {
             DataSet returnDs = new DataSet();
@@ -108,7 +173,7 @@ namespace ExcelReporter
                     Shift = c.Field<string>("Shift"),
                     Inspector = c.Field<string>("Inspector"),
                     PartNo = c.Field<string>("Part No.")
-                }).Where(g => g.Count() >= 1 && g.Key.PartNo.Trim() != "")
+                }).Where(g => g.Any() && g.Key.PartNo.Trim() != "")
                 .Select(g => new
                 {
                     g.Key.Type,
@@ -127,7 +192,7 @@ namespace ExcelReporter
                 }).ToList();
 
             DataTable filteredReportTable = new DataTable("source");
-            foreach (var headerData in this.Config.DefaultHeaderFields)
+            foreach (var headerData in this.headerFields)
                 filteredReportTable.Columns.Add(headerData.HeaderLabel, headerData.ColumnType);
             for (int i = 0; i < lstDuplicatedResult.Count; i++)
             {
@@ -165,7 +230,7 @@ namespace ExcelReporter
                     Concentration = row.Field<double>("Concentration"),
                     Inspector = row.Field<string>("Inspector"),
                     Shift = row.Field<string>("Shift")
-                }).Where(g => g.Count() >= 1)
+                }).Where(g => g.Any())
                 .OrderBy(g => g.Key.InspectedDate)
                 .Select(g => new ReportKey(
                     g.Key.InspectedDate,
@@ -175,7 +240,6 @@ namespace ExcelReporter
                 g.Key.Shift
                 )).ToList();
 
-            //var lstInspectedDatesRslt = reportKeyResult.ToList();
             for (int i = 0; i < lstInspectedDatesRslt.Count; i++)
             {
                 var item = lstInspectedDatesRslt[i];
@@ -195,13 +259,13 @@ namespace ExcelReporter
 
         internal void UpdateWorkfile(WorkFileInfo workFile)
         {
-            var selectedReport = this._reports.Where(r => r.WorkFile.FilePath == workFile.FilePath).First();
+            var selectedReport = _reports.First(r => r.WorkFile.FilePath == workFile.FilePath);
 
             this._reports.Remove(selectedReport);
 
             var newReport = this.loadWorkFileToReport(workFile);
             this._reports.Add(newReport);
-            NotifyPropertyChanged(newReport.Tag);
+            notifyPropertyChanged(newReport.Tag);
         }
 
         internal void LoadWorkFiles(IList<WorkFileInfo> workingFiles)
@@ -234,39 +298,31 @@ namespace ExcelReporter
                         if (this._reports == null)
                             this._reports = new List<DataReport>();
 
-                        var createdReport = (DataReport)task.Result;
+                        var createdReport = task.Result;
                         try
                         {
-                            var reportHasExisted = this._reports.Where(r => r.FilePath == createdReport.FilePath).First();
+                            var reportHasExisted = _reports.FirstOrDefault(r => r.FilePath == createdReport.FilePath);
                             if (reportHasExisted != null)
                                 this._reports.Remove(reportHasExisted);
                         }
-                        catch (InvalidOperationException)
-                        { }
-
-                        this._reports.Add(createdReport);
+                        finally
+                        {
+                            // TODO: Check this, the below originally staying out of try catch block
+                            this._reports.Add(createdReport);
+                        }
 
                         reportChanged = true;
                     }
                 }
 
                 if (reportChanged)
-                    NotifyPropertyChanged("");
+                    notifyPropertyChanged("");
             }
         }
 
-        private void addReport(DataReport report)
+        private void notifyPropertyChanged([CallerMemberName] string changedReportTag = "")
         {
-            if (this._reports == null)
-                this._reports = new List<DataReport>();
-
-            this._reports.Add(report);
-        }
-
-        private void NotifyPropertyChanged([CallerMemberName] string changedReportTag = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(changedReportTag));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(changedReportTag));
         }
 
         /// <summary>
@@ -276,7 +332,7 @@ namespace ExcelReporter
         /// <returns></returns>
         private DataReport loadWorkFileToReport(WorkFileInfo workFile)
         {
-            var report = DataReport.LoadFile(workFile.FilePath, workFile.SheetName, 0, this.Config.DefaultHeaderFields);
+            var report = DataReport.LoadFile(workFile.FilePath, workFile.SheetName, 0, this.headerFields);
 
             if (report != null)
             {

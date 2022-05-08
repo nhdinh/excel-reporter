@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using ExcelReporter.Exceptions;
+using ExcelReporter.Properties;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Xml;
 using static System.Environment;
@@ -89,24 +90,6 @@ namespace ExcelReporter
             return new List<WorkFileInfo>();
         }
 
-        internal static void SaveAppConfig(AppConfig config)
-        {
-            SaveJson(AppConfigSaveName, config);
-        }
-
-        internal static AppConfig LoadAppConfigFromJson()
-        {
-            var appConfigFilePath = Path.Combine(SettingsSavePath, SettingsFolderName, AppConfigSaveName);
-            if (File.Exists(appConfigFilePath))
-            {
-                var _appConfig = JsonConvert.DeserializeObject<AppConfig>(File.ReadAllText(appConfigFilePath));
-
-                return _appConfig;
-            }
-
-            return new AppConfig();
-        }
-
         internal static void SaveReportOption(ReportOption option)
         {
             SaveJson(ReportOptionSaveNamePrfx + option.Id + ".json", option);
@@ -175,6 +158,11 @@ namespace ExcelReporter
             }
         }
 
+        internal static string GetReportsSaveLocation()
+        {
+            return !string.IsNullOrEmpty(Settings.Default.ReportsSaveLocation) ? Settings.Default.ReportsSaveLocation : Path.Combine(GetFolderPath(SpecialFolder.MyDocuments), "Reports");
+        }
+
         /// <summary>
         /// Convert github tag in string format to Version instance.
         /// Github tag has format of v0.0.1. This is the release tag of the repository.
@@ -207,23 +195,35 @@ namespace ExcelReporter
             return null;
         }
 
-        /// <summary>
-        /// Get RuntimeIdentifier of the current process
-        /// </summary>
-        /// <returns>a string represent for RuntimeIdentifier</returns>
-        public static string GetRuntimeIdentifier()
+        internal static string GetReportTemplate(string reportForm)
         {
-            string os = "";
+            var template = reportForm == "201" ? @".\templates\mt201_template.xlsx" : @".\templates\mt202_template.xlsx";
+            if (File.Exists(template))
+                return template;
+            else throw new TemplateNotFoundException("Template for report form " + reportForm + " not found");
+        }
 
-            // check if the current OS is windows?
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) os = "win";
+        internal static string makeReportSheetName(DateTime inspectedDate, double concentration, string partNo, string inspector, string shiftName, int page)
+        {
+            string sheetName;
 
-            if (RuntimeInformation.OSArchitecture == Architecture.X64)
-                return os + "-x64";
-            else if (RuntimeInformation.OSArchitecture == Architecture.X86)
-                return os + "-x86";
+            if (page > 1)
+                sheetName = String.Format("{0:dd}_{1}_{2}_{3}{4}_P{5}", inspectedDate, concentration, partNo, inspector, shiftName, page);
+            else
+                sheetName = String.Format("{0:dd}_{1}_{2}_{3}{4}", inspectedDate, concentration, partNo, inspector, shiftName);
 
-            return "unknown";
+            return sheetName;
+        }
+
+        internal static string makeReportSheetName(ReportKey reportKey, int curPage)
+        {
+            DateTime inspDate = reportKey.InspectedDate;
+            double concentration = reportKey.Concentration * 100;
+            string partNo = reportKey.PartNo;
+            string inspector = reportKey.Inspector.Length > 3 ? reportKey.Inspector.Remove(3) : reportKey.Inspector;
+            string shift = reportKey.Shift.Replace("S", "");
+
+            return makeReportSheetName(inspDate, concentration, partNo, inspector, shift, curPage);
         }
     }
 }

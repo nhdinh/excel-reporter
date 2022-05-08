@@ -34,5 +34,89 @@ namespace ExcelReporter.Properties {
                 this["UpgradeRequired"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastReportOptionId {
+            get {
+                return ((string)(this["LastReportOptionId"]));
+            }
+            set {
+                this["LastReportOptionId"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8, 8")]
+        public global::System.Drawing.Point LastWindowLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["LastWindowLocation"]));
+            }
+            set {
+                this["LastWindowLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("697, 403")]
+        public global::System.Drawing.Size LastWindowSize {
+            get {
+                return ((global::System.Drawing.Size)(this["LastWindowSize"]));
+            }
+            set {
+                this["LastWindowSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastReportNo {
+            get {
+                return ((string)(this["LastReportNo"]));
+            }
+            set {
+                this["LastReportNo"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DefaultHeaderFieldLabels {
+            get {
+                return ((string)(this["DefaultHeaderFieldLabels"]));
+            }
+            set {
+                this["DefaultHeaderFieldLabels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DefaultHeaderFieldColTypes {
+            get {
+                return ((string)(this["DefaultHeaderFieldColTypes"]));
+            }
+            set {
+                this["DefaultHeaderFieldColTypes"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ReportsSaveLocation {
+            get {
+                return ((string)(this["ReportsSaveLocation"]));
+            }
+            set {
+                this["ReportsSaveLocation"] = value;
+            }
+        }
     }
 }

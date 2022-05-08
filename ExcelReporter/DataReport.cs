@@ -1,4 +1,5 @@
-﻿using NPOI.SS.UserModel;
+﻿using ExcelReporter.Exceptions;
+using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
@@ -14,14 +15,14 @@ namespace ExcelReporter
 {
     public struct CellValue
     {
-        public object Value;
-        public Type ValueType;
+        public object Value { get; set; }
+        public Type ValueType { get; set; }
     }
 
-    public struct HeaderField
+    public class HeaderField
     {
-        public Type ColumnType;
-        public string HeaderLabel;
+        public Type ColumnType { get; set; }
+        public string HeaderLabel { get; set; }
 
         public HeaderField(string HeaderLabel, Type ColumnType)
         {
@@ -183,7 +184,7 @@ namespace ExcelReporter
         public static string[] GetSheetNames(string path)
         {
             IWorkbook wb = new XSSFWorkbook(File.OpenRead(path));
-            return GetSheetNames(wb);
+            return getSheetNames(wb);
         }
 
         public static DataReport LoadFile(string path, string sheetName = "", int headerRowIndex = 0, HeaderField[] headerFields = null)
@@ -196,7 +197,7 @@ namespace ExcelReporter
                 IWorkbook wb = WorkbookFactory.Create(fs);
 
                 // check for the sheet name
-                string[] sheetNames = DataReport.GetSheetNames(wb);
+                string[] sheetNames = DataReport.getSheetNames(wb);
 
                 if (sheetName != "")
                 {
@@ -244,7 +245,7 @@ namespace ExcelReporter
                             var stringRow = new string[13];
                             for (int j = 0; j < 13; j++)
                             {
-                                stringRow[j] = GetCellValue(sheetRow.Cells[j]).ToString();
+                                stringRow[j] = getCellValue(sheetRow.Cells[j]).ToString();
                             }
 
                             stringRows.Add(stringRow);
@@ -337,7 +338,7 @@ namespace ExcelReporter
 
                     Parallel.For(0, cellCount - 1, index =>
                       {
-                          var cellVal = GetCellValue(headerRow.Cells[index]);
+                          var cellVal = getCellValue(headerRow.Cells[index]);
 
                           if (!cellVal.ToString().StartsWith("Column"))
                               _headerDatas[index] = new HeaderField(cellVal.ToString(), typeof(object));
@@ -377,7 +378,7 @@ namespace ExcelReporter
                     if (row.PhysicalNumberOfCells >= headerLabels.Length)
                         for (int j = 0; j < headerLabels.Length; j++)
                         {
-                            var cellValue = GetCellValue(row.Cells[j]);
+                            var cellValue = getCellValue(row.Cells[j]);
                             if (headerLabels.Contains(cellValue))
                             {
                                 matchedPoint += 1.0 / headerLabels.Length;
@@ -443,7 +444,7 @@ namespace ExcelReporter
         /// </summary>
         /// <param name="wb">Instance of the workbook</param>
         /// <returns>Array of names</returns>
-        private static string[] GetSheetNames(IWorkbook wb)
+        private static string[] getSheetNames(IWorkbook wb)
         {
             int sheetCount = wb.NumberOfSheets;
             string[] sheetNames = new string[sheetCount];
@@ -456,7 +457,7 @@ namespace ExcelReporter
             return sheetNames;
         }
 
-        private static object GetCellValue(ICell cell)
+        private static object getCellValue(ICell cell)
         {
             switch (cell.CellType)
             {
@@ -484,11 +485,6 @@ namespace ExcelReporter
                 default:
                     return cell.CellType.ToString();
             }
-        }
-
-        internal IList<ReportRow> GetReportData(int firstIndex, int lastIndex)
-        {
-            return null;
         }
     }
 }

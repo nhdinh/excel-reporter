@@ -50,10 +50,10 @@ namespace ExcelReporter
             this.mt202 = new System.Windows.Forms.RadioButton();
             this.mt201 = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
-            this.dtpTo = new System.Windows.Forms.DateTimePicker();
+            this.dtpEnd = new System.Windows.Forms.DateTimePicker();
             this.label13 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
-            this.dtpFrom = new System.Windows.Forms.DateTimePicker();
+            this.dtpStart = new System.Windows.Forms.DateTimePicker();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgParts)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -126,7 +126,7 @@ namespace ExcelReporter
             this.btnDelete.Text = "Delete";
             this.btnDelete.UseMnemonic = false;
             this.btnDelete.UseVisualStyleBackColor = true;
-            this.btnDelete.Click += new System.EventHandler(this.BtnDelete_Click);
+            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
             // cbSelectReportOptionId
             // 
@@ -137,7 +137,7 @@ namespace ExcelReporter
             this.cbSelectReportOptionId.Name = "cbSelectReportOptionId";
             this.cbSelectReportOptionId.Size = new System.Drawing.Size(330, 21);
             this.cbSelectReportOptionId.TabIndex = 0;
-            this.cbSelectReportOptionId.SelectedIndexChanged += new System.EventHandler(this.CbSelectReportOptionId_SelectedIndexChanged);
+            this.cbSelectReportOptionId.SelectedIndexChanged += new System.EventHandler(this.cbSelectReportOptionId_SelectedIndexChanged);
             // 
             // label10
             // 
@@ -154,7 +154,7 @@ namespace ExcelReporter
             this.txtAcceptanceCriteria.Name = "txtAcceptanceCriteria";
             this.txtAcceptanceCriteria.Size = new System.Drawing.Size(444, 20);
             this.txtAcceptanceCriteria.TabIndex = 3;
-            this.txtAcceptanceCriteria.Validating += new System.ComponentModel.CancelEventHandler(this.TxtAcceptanceCriteria_Validating);
+            this.txtAcceptanceCriteria.Validating += new System.ComponentModel.CancelEventHandler(this.txtAcceptanceCriteria_Validating);
             // 
             // label3
             // 
@@ -171,7 +171,7 @@ namespace ExcelReporter
             this.txtProcedure.Name = "txtProcedure";
             this.txtProcedure.Size = new System.Drawing.Size(444, 20);
             this.txtProcedure.TabIndex = 2;
-            this.txtProcedure.Validating += new System.ComponentModel.CancelEventHandler(this.TxtProcedure_Validating);
+            this.txtProcedure.Validating += new System.ComponentModel.CancelEventHandler(this.txtProcedure_Validating);
             // 
             // txtCustomerName
             // 
@@ -179,7 +179,7 @@ namespace ExcelReporter
             this.txtCustomerName.Name = "txtCustomerName";
             this.txtCustomerName.Size = new System.Drawing.Size(444, 20);
             this.txtCustomerName.TabIndex = 1;
-            this.txtCustomerName.Validating += new System.ComponentModel.CancelEventHandler(this.TxtCustomerName_Validating);
+            this.txtCustomerName.Validating += new System.ComponentModel.CancelEventHandler(this.txtCustomerName_Validating);
             // 
             // btnSaveAndClose
             // 
@@ -190,7 +190,7 @@ namespace ExcelReporter
             this.btnSaveAndClose.Text = "Save & Close";
             this.btnSaveAndClose.UseMnemonic = false;
             this.btnSaveAndClose.UseVisualStyleBackColor = true;
-            this.btnSaveAndClose.Click += new System.EventHandler(this.BtnSaveAndClose_Click);
+            this.btnSaveAndClose.Click += new System.EventHandler(this.btnSaveAndClose_Click);
             // 
             // btnSaveAndExport
             // 
@@ -213,17 +213,17 @@ namespace ExcelReporter
             this.btnClose.Text = "Close";
             this.btnClose.UseMnemonic = false;
             this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.mt202);
             this.groupBox2.Controls.Add(this.mt201);
             this.groupBox2.Controls.Add(this.label4);
-            this.groupBox2.Controls.Add(this.dtpTo);
+            this.groupBox2.Controls.Add(this.dtpEnd);
             this.groupBox2.Controls.Add(this.label13);
             this.groupBox2.Controls.Add(this.label12);
-            this.groupBox2.Controls.Add(this.dtpFrom);
+            this.groupBox2.Controls.Add(this.dtpStart);
             this.groupBox2.Location = new System.Drawing.Point(12, 595);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(587, 90);
@@ -241,7 +241,7 @@ namespace ExcelReporter
             this.mt202.TabIndex = 15;
             this.mt202.Text = "MT202";
             this.mt202.UseVisualStyleBackColor = true;
-            this.mt202.CheckedChanged += new System.EventHandler(this.Mt202_CheckedChanged);
+            this.mt202.CheckedChanged += new System.EventHandler(this.mt202_CheckedChanged);
             // 
             // mt201
             // 
@@ -255,7 +255,7 @@ namespace ExcelReporter
             this.mt201.TabStop = true;
             this.mt201.Text = "MT201";
             this.mt201.UseVisualStyleBackColor = true;
-            this.mt201.CheckedChanged += new System.EventHandler(this.Mt201_CheckedChanged);
+            this.mt201.CheckedChanged += new System.EventHandler(this.mt201_CheckedChanged);
             // 
             // label4
             // 
@@ -268,12 +268,12 @@ namespace ExcelReporter
             // 
             // dtpTo
             // 
-            this.dtpTo.CustomFormat = "dd/ MMM/ yyyy";
-            this.dtpTo.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpTo.Location = new System.Drawing.Point(381, 31);
-            this.dtpTo.Name = "dtpTo";
-            this.dtpTo.Size = new System.Drawing.Size(200, 20);
-            this.dtpTo.TabIndex = 13;
+            this.dtpEnd.CustomFormat = "dd/ MMM/ yyyy";
+            this.dtpEnd.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpEnd.Location = new System.Drawing.Point(381, 31);
+            this.dtpEnd.Name = "dtpTo";
+            this.dtpEnd.Size = new System.Drawing.Size(200, 20);
+            this.dtpEnd.TabIndex = 13;
             // 
             // label13
             // 
@@ -295,13 +295,13 @@ namespace ExcelReporter
             // 
             // dtpFrom
             // 
-            this.dtpFrom.CustomFormat = "dd/ MMM/ yyyy";
-            this.dtpFrom.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpFrom.Location = new System.Drawing.Point(81, 31);
-            this.dtpFrom.Name = "dtpFrom";
-            this.dtpFrom.Size = new System.Drawing.Size(200, 20);
-            this.dtpFrom.TabIndex = 0;
-            this.dtpFrom.ValueChanged += new System.EventHandler(this.DtpFrom_ValueChanged);
+            this.dtpStart.CustomFormat = "dd/ MMM/ yyyy";
+            this.dtpStart.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpStart.Location = new System.Drawing.Point(81, 31);
+            this.dtpStart.Name = "dtpFrom";
+            this.dtpStart.Size = new System.Drawing.Size(200, 20);
+            this.dtpStart.TabIndex = 0;
+            this.dtpStart.ValueChanged += new System.EventHandler(this.dtpFrom_ValueChanged);
             // 
             // FrmExportConfig
             // 
@@ -321,7 +321,7 @@ namespace ExcelReporter
             this.Name = "FrmExportConfig";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FrmExportConfig";
-            this.Load += new System.EventHandler(this.FrmExportConfig_Load);
+            this.Load += new System.EventHandler(this.frmExportConfig_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgParts)).EndInit();
@@ -349,10 +349,10 @@ namespace ExcelReporter
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.DataGridView dgParts;
 		private System.Windows.Forms.GroupBox groupBox2;
-		private System.Windows.Forms.DateTimePicker dtpFrom;
+		private System.Windows.Forms.DateTimePicker dtpStart;
 		private System.Windows.Forms.Label label12;
 		private System.Windows.Forms.Label label13;
-		private System.Windows.Forms.DateTimePicker dtpTo;
+		private System.Windows.Forms.DateTimePicker dtpEnd;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.RadioButton mt202;
         private System.Windows.Forms.RadioButton mt201;

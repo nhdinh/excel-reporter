@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Excel Reporter")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("The application for generating a simple excel report files.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kitten Koder")]
 [assembly: AssemblyProduct("Excel Reporter")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCopyright("Copyright © Kitten Koder 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
