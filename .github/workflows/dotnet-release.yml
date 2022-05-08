@@ -68,6 +68,14 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
+    # Test build
+    - name: Test build
+      run: |
+        msbuild "${env:ProjectDir}/${env:ProjectDir}.csproj" /p:Configuration=$env:Configuration
+        msbuild "SetupProject/SetupProject.wixproj" /p:Configuration=$env:Configuration
+      env:
+        Configuration: ${{ matrix.configuration }}
+
 
   release:
     name: "Release artifact"
