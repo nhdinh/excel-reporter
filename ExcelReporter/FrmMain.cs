@@ -76,13 +76,12 @@ namespace ExcelReporter
                 });
             else
             {
-                try
+                var report = app.Reports.FirstOrDefault(r => r.Tag == changedReportTag);
+                if (report != null && report.LoadStatus == LoadStatus.LOADED)
                 {
-                    var report = this.app.Reports.Where(r => r.Tag == changedReportTag).First();
                     TabPage page = this.makeTabPage(report);
                     this.tabs.TabPages.Add(page);
                 }
-                finally { }
             }
         }
 

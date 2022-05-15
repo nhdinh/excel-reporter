@@ -318,7 +318,7 @@ namespace ExcelReporter
             // load current report option from appDaata
             if (Settings.Default.LastReportOptionId != "")
             {
-                var _reportOption = Helpers.LoadReportOption(Settings.Default.LastReportOptionId);
+                ReportOption _reportOption = Helpers.LoadReportOption(Settings.Default.LastReportOptionId);
                 if (_reportOption != null)
                 {
                     this.reportOption = _reportOption;// load data into gridview
@@ -419,10 +419,7 @@ namespace ExcelReporter
                         .OrderBy(r => r.SN)
                         .ToList();
 
-                    // old day
-                    // this.fillDataToOutReportWorkbook(ref workbook, reportKey, reportData, part);
-
-                    // new day
+                    // paginate data into smaller chunks, each chunk contents are fit into a page. Each chunk is driven by the PartSN
                     var lstPaginatedDataDict = new List<Dictionary<string, IList<ReportDataRow>>>();
                     var dicDataOfCurPage = new Dictionary<string, IList<ReportDataRow>>();
                     int numOfRowFeededToCurPage = 0;
@@ -515,6 +512,11 @@ namespace ExcelReporter
                 IList<ReportDataRow> lstReportData = dictPageData[sn];
                 foreach (ReportDataRow reportRow in lstReportData)
                 {
+                    // extract testTemp, uv and visibleLight
+                    testTemp = reportRow.TestTemp;
+                    uv = reportRow.UV;
+                    visibleLight = reportRow.VisibleLight;
+
                     mt1.SetLineValue(row, reportRow.SN, reportRow.ExtendOfTest);
                     row++;
                 }

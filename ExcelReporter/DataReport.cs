@@ -1,4 +1,5 @@
 ﻿using ExcelReporter.Exceptions;
+using NLog;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -56,6 +57,7 @@ namespace ExcelReporter
 
     public class DataReport
     {
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
         private string filePath = null;
         private HeaderField[] headerDatas = null;
         private int headerRowIndex = -1;
@@ -189,6 +191,7 @@ namespace ExcelReporter
 
         public static DataReport LoadFile(string path, string sheetName = "", int headerRowIndex = 0, HeaderField[] headerFields = null)
         {
+            Logger logger = LogManager.GetCurrentClassLogger();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -203,6 +206,7 @@ namespace ExcelReporter
                 {
                     if (!sheetNames.Contains(sheetName))
                     {
+                        logger.Debug("DataReport: Sheet name not found: " + sheetName);
                         throw new SheetNotFoundException(path, sheetName);
                     }
                 }

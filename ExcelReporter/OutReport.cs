@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using ExcelReporter.Exceptions;
+using NLog;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using System;
@@ -228,10 +229,10 @@ namespace ExcelReporter
         internal void MergeLineSN(int rowStart, int rowEnd)
         {
             if (rowStart >= PAGE_SIZE || rowEnd >= PAGE_SIZE)
-                throw new Exception("MergeLineSN: rowStart and rowEnd must be less than PAGE_SIZE");
+                throw new MergeRowException("rowStart and rowEnd must be less than PAGE_SIZE");
 
             if (rowStart > rowEnd)
-                throw new Exception("MergeLineSN: rowStart must be less than rowEnd");
+                throw new MergeRowException("rowStart must be less than rowEnd");
 
             // first is to make a check to make sure all the line has same SN
             IList<string> rowSNs = new List<string>();
@@ -243,7 +244,7 @@ namespace ExcelReporter
             }
 
             if (rowSNs.Distinct().Count() > 1)
-                throw new Exception("MergeLineSN: rows must have same SN");
+                throw new MergeRowException("Rows must have same SN");
 
             var mergedRegions = this.sheet.MergedRegions;
             var regionsToRemove = new List<int>();

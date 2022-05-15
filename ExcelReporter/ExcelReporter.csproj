@@ -154,6 +154,7 @@
     <Compile Include="DataReport.cs" />
     <Compile Include="Exceptions\CreateNewSheetException.cs" />
     <Compile Include="Exceptions\ExcelReporterException.cs" />
+    <Compile Include="Exceptions\MergeRowException.cs" />
     <Compile Include="Exceptions\SheetNotFoundException.cs" />
     <Compile Include="Exceptions\TemplateNotFoundException.cs" />
     <Compile Include="FrmCorrectFileSettings.cs">
