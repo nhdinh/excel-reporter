@@ -19,8 +19,7 @@ namespace ExcelReporter
         {
 #if !DEBUG
             // since debugging source always be the latest version, therefore no need to check for update in debug mode
-            var updateTask = Program.TryUpdateApplicationAsync();
-            await updateTask;
+            Program.TryUpdateApplicationAsync();
 #endif
 
             // check if the application is need to be upgraded and copy the settings from older version to this version
