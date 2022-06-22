@@ -5,11 +5,11 @@ using System.IO;
 
 namespace ExcelReporter.Tests
 {
-    [TestClass()]
+    [TestClass]
     public class FrmExportConfigTests
     {
-        [TestMethod()]
-        public void makeDailyReportsTestReturnNullIfReportSourceIsNull()
+        [TestMethod]
+        public void MakeDailyReportsTestReturnNullIfReportSourceIsNull()
         {
             var reportKeys = new ReportKey[] {
             new ReportKey(new DateTime(2018,1,1), "PN001", 0.1, "Inspector 1", "Shift 1"),
@@ -18,20 +18,20 @@ namespace ExcelReporter.Tests
 
             var sourceReport = new DataTable();
 
-            FrmExportConfig frm = new FrmExportConfig();
+            var frm = new FrmExportConfig();
             frm.frmExportConfig_Load(frm, null);
-            object result = frm.makeDailyReports(reportKeys, sourceReport);
+            object result = frm.MakeDailyReports(reportKeys, sourceReport);
 
             Assert.IsTrue(result == null);
         }
 
-        [TestMethod()]
-        public void checkReportSavingLocationTest()
+        [TestMethod]
+        public void CheckReportSavingLocationTest()
         {
-            var reportFolderName = "fname";
+            const string reportFolderName = "fname";
             var reportSaveLocation = Path.GetTempPath();
 
-            FrmExportConfig frm = new FrmExportConfig();
+            var frm = new FrmExportConfig();
             frm.checkReportSavingLocation(reportFolderName, reportSaveLocation);
 
             var expectedFolder = Path.Combine(reportSaveLocation, reportFolderName);

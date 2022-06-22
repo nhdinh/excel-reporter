@@ -16,16 +16,16 @@ namespace ExcelReporter
     {
         public static string SettingsSavePath = GetFolderPath(SpecialFolder.LocalApplicationData);
         public static string SettingsFolderName = "Reporter";
-        public static string RecentFileSaveName = "recents.json";
+        public static string RecentFileSaveName = $"recents.json";
         public static string AppConfigSaveName = "config.json";
-        public static string ReportOptionSaveNamePrfx = "reop_";
+        public static string ReportOptionSaveNamePrefix = "reop_";
 
         public static void ConfigNLog()
         {
             var config = new NLog.Config.LoggingConfiguration();
 
             var logFile = new NLog.Targets.FileTarget("logfile") { FileName = "app.log" };
-            var logConsole = new NLog.Targets.ConsoleTarget("logconsole");
+            var logConsole = new NLog.Targets.ConsoleTarget($"logconsole");
 
 #if (DEBUG)
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logConsole);
@@ -39,16 +39,16 @@ namespace ExcelReporter
 
         internal static string[] FetchReportOptions()
         {
-            string savePath = Path.Combine(SettingsSavePath, SettingsFolderName);
+            var savePath = Path.Combine(SettingsSavePath, SettingsFolderName);
             if (!Directory.Exists(savePath))
                 return new string[] { };
             else
             {
-                IEnumerable<string> files = Directory.EnumerateFiles(savePath, ReportOptionSaveNamePrfx + "*.json");
-                List<string> reportOptionIdList = new List<string>();
+                var files = Directory.EnumerateFiles(savePath, ReportOptionSaveNamePrefix + "*.json");
+                var reportOptionIdList = new List<string>();
                 foreach (var filePath in files)
                 {
-                    var reportOptionId = Path.GetFileName(filePath).Replace(ReportOptionSaveNamePrfx, "").Replace(".json", "");
+                    var reportOptionId = Path.GetFileName(filePath).Replace(ReportOptionSaveNamePrefix, "").Replace(".json", "");
 
                     reportOptionIdList.Add(reportOptionId);
                 }
@@ -59,11 +59,11 @@ namespace ExcelReporter
 
         internal static void SaveJson(string fileName, object o)
         {
-            string savePath = Path.Combine(SettingsSavePath, SettingsFolderName);
+            var savePath = Path.Combine(SettingsSavePath, SettingsFolderName);
             if (!Directory.Exists(savePath))
                 Directory.CreateDirectory(savePath);
 
-            JsonSerializer serializer = new JsonSerializer();
+            var serializer = new JsonSerializer();
 
             using (var fs = new StreamWriter(Path.Combine(savePath, fileName)))
             using (JsonWriter writer = new JsonTextWriter(fs))
@@ -78,27 +78,24 @@ namespace ExcelReporter
         internal static IList<WorkFileInfo> LoadRecentFile()
         {
             // load from recent files data
-            var recentsFilePath = Path.Combine(SettingsSavePath, SettingsFolderName, RecentFileSaveName);
+            var recentFilePath = Path.Combine(SettingsSavePath, SettingsFolderName, RecentFileSaveName);
 
-            if (File.Exists(recentsFilePath))
-            {
-                var _workingFiles = JsonConvert.DeserializeObject<List<WorkFileInfo>>(File.ReadAllText(recentsFilePath));
+            if (!File.Exists(recentFilePath)) return new List<WorkFileInfo>();
+            var _workingFiles = JsonConvert.DeserializeObject<List<WorkFileInfo>>(File.ReadAllText(recentFilePath));
 
-                return _workingFiles;
-            }
+            return _workingFiles;
 
-            return new List<WorkFileInfo>();
         }
 
         internal static void SaveReportOption(ReportOption option)
         {
-            SaveJson(ReportOptionSaveNamePrfx + option.Id + ".json", option);
+            SaveJson(ReportOptionSaveNamePrefix + option.Id + ".json", option);
         }
 
         internal static ReportOption LoadReportOption(string reportOptionId)
         {
             var optionFile = Path.Combine(SettingsSavePath, SettingsFolderName);
-            optionFile = Path.Combine(optionFile, ReportOptionSaveNamePrfx + reportOptionId + ".json");
+            optionFile = Path.Combine(optionFile, ReportOptionSaveNamePrefix + reportOptionId + ".json");
 
             if (File.Exists(optionFile))
             {
@@ -125,7 +122,7 @@ namespace ExcelReporter
         internal static void DeleteReportOption(string optionId)
         {
             var optionFile = Path.Combine(SettingsSavePath, SettingsFolderName);
-            optionFile = Path.Combine(optionFile, ReportOptionSaveNamePrfx + optionId + ".json");
+            optionFile = Path.Combine(optionFile, ReportOptionSaveNamePrefix + optionId + ".json");
 
             if (File.Exists(optionFile))
                 try
