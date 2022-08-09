@@ -570,7 +570,7 @@ namespace ExcelReporter
             mt1.SetFieldValue(CellLabels.TEST_TEMP, testTemp);
             mt1.SetFieldValue(CellLabels.COIL, part?.Coil ?? 0);
             mt1.SetFieldValue(CellLabels.YOKE, part?.Yoke ?? 0);
-
+                                                                                                                                
             mt1.SetFieldValue(CellLabels.UV, uv);
 
             mt1.SetFieldValue(CellLabels.VISIBLE_LIGHT_INTENSITY, visibleLight);

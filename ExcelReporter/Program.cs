@@ -87,7 +87,7 @@ namespace ExcelReporter
                 var downloadAsset = latestRelease.Assets.First(a => a.Name.StartsWith(downloadFileName) && a.Name.EndsWith("release.zip"));
 
                 // if both latestVersion and downloadAsset are not null
-                if (remoteVersion != null && downloadAsset != null)
+                if (remoteVersion != null)
                 {
                     // create xml file for updating
                     string appCastFilePath = Path.Combine(Path.GetTempPath(), "update.xml");

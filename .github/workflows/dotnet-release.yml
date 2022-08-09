@@ -155,7 +155,8 @@ jobs:
 
         # pack files
         mv "${SignDir}/ExcelReporter.exe" "${ExcelReporterDir}/bin/${Configuration}/*"
-        7z a -tzip "${release_name}.zip" "${ExcelReporterDir}/bin/${Configuration}/*"
+        cd "${ExcelReporterDir}/bin/${Configuration}/" && 7z a -tzip "../../../${release_name}.zip" *
+        cd "../../../"
         mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
 
         # show files

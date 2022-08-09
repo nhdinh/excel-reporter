@@ -1,10 +1,10 @@
-﻿using ExcelReporter.Exceptions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ExcelReporter.Exceptions;
 using NLog;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ExcelReporter
 {
@@ -25,20 +25,20 @@ namespace ExcelReporter
 
     public struct CellAddress
     {
-        public int Row { get; private set; }
-        public int Col { get; private set; }
+        public int Row { get; }
+        public int Col { get; }
 
         public CellAddress(int row, string col)
         {
-            this.Row = row - 1;
-            this.Col = GetColumnNumber(col) - 1;
+            Row = row - 1;
+            Col = GetColumnNumber(col) - 1;
         }
 
         private static int GetColumnNumber(string name)
         {
-            int number = 0;
-            int pow = 1;
-            for (int i = name.Length - 1; i >= 0; i--)
+            var number = 0;
+            var pow = 1;
+            for (var i = name.Length - 1; i >= 0; i--)
             {
                 number += (name[i] - 'A' + 1) * pow;
                 pow *= 26;
@@ -50,19 +50,19 @@ namespace ExcelReporter
 
     public struct ReportKey
     {
-        public DateTime InspectedDate { get; private set; }
-        public string PartNo { get; private set; }
-        public double Concentration { get; private set; }
-        public string Inspector { get; private set; }
-        public string Shift { get; private set; }
+        public DateTime InspectedDate { get; }
+        public string PartNo { get; }
+        public double Concentration { get; }
+        public string Inspector { get; }
+        public string Shift { get; }
 
         public ReportKey(DateTime inspectedDate, string partNo, double concentration, string inspector, string shift)
         {
-            this.InspectedDate = inspectedDate;
-            this.PartNo = partNo;
-            this.Concentration = concentration;
-            this.Inspector = inspector;
-            this.Shift = shift;
+            InspectedDate = inspectedDate;
+            PartNo = partNo;
+            Concentration = concentration;
+            Inspector = inspector;
+            Shift = shift;
         }
     }
 
@@ -100,7 +100,6 @@ namespace ExcelReporter
 
     public class OutReport
     {
-        private readonly Logger logger;
         private const int COL_PART_SN = 0;
         private const int COL_EXTEND_OF_TEST = 12;
         private const int COL_QUANTITY = 18;
@@ -112,56 +111,61 @@ namespace ExcelReporter
         private const int COL_TYPE = 37;
         private const int COL_ACCEPT = 40;
 
-        private ISheet sheet { get; set; }
-
         public const int START_BODY_ROW = 24;
         public const int PAGE_SIZE = 18;
+        private readonly Logger logger;
 
         public OutReport(ISheet newSheet)
         {
-            this.sheet = newSheet;
-            this.logger = LogManager.GetCurrentClassLogger();
+            sheet = newSheet;
+            logger = LogManager.GetCurrentClassLogger();
         }
+
+        private ISheet sheet { get; }
 
         public void SetFieldValue(CellAddress targetCell, object value)
         {
-            if (this.sheet == null)
-            {
-                throw new Exception("Must set Sheet instance first");
-            }
+            if (sheet == null) throw new Exception("Must set Sheet instance first");
 
-            ICell cell = this.sheet.GetRow(targetCell.Row).GetCell(targetCell.Col);
+            var cell = sheet.GetRow(targetCell.Row).GetCell(targetCell.Col);
 
-            if (value is string stringValue)
+            switch (value.GetType())
             {
-                cell.SetCellValue(stringValue);
-                cell.SetCellType(CellType.String);
-            }
-            else if (value is DateTime time)
-            {
-                cell.SetCellValue(time);
-                cell.SetCellType(CellType.Numeric);
-            }
-            else if (value is int intNum)
-            {
-                cell.SetCellValue(intNum);
-                cell.SetCellType(CellType.Numeric);
-            }
-            else if (value is double doubleNum)
-            {
-                cell.SetCellValue(doubleNum);
-                cell.SetCellType(CellType.Numeric);
+                case Type t when t == typeof(string):
+                    cell.SetCellValue(value.ToString());
+                    cell.SetCellType(CellType.String);
+                    break;
+                case Type t when t == typeof(DateTime):
+                    cell.SetCellValue(Convert.ToDateTime(value));
+                    cell.SetCellType(CellType.Numeric);
+                    break;
+                case Type t when t == typeof(int):
+                    cell.SetCellValue(Convert.ToInt32(value));
+                    cell.SetCellType(CellType.Numeric);
+                    break;
+                case Type t when t == typeof(double):
+                    cell.SetCellValue(Convert.ToDouble(value));
+                    cell.SetCellType(CellType.Numeric);
+                    break;
+                case Type t when t == typeof(float) || t == typeof(System.Single):
+                    cell.SetCellValue(Convert.ToDouble(value));
+                    cell.SetCellType(CellType.Numeric);
+                    break;
+                default:
+                    cell.SetCellValue(value.ToString());
+                    cell.SetCellType(CellType.String);
+                    break;
             }
         }
 
         public void SetCustomerName(string customerName)
         {
-            this.SetFieldValue(CellLabels.CUSTOMER_NAME, customerName);
+            SetFieldValue(CellLabels.CUSTOMER_NAME, customerName);
         }
 
         public void SetProcedure(string procedure)
         {
-            this.SetFieldValue(CellLabels.PROCEDURE, procedure);
+            SetFieldValue(CellLabels.PROCEDURE, procedure);
         }
 
         internal void SetLineValue(int row, string partSN, string extendOfTest)
@@ -171,45 +175,45 @@ namespace ExcelReporter
 
             try
             {
-                IRow curRow = this.sheet.GetRow(OutReport.START_BODY_ROW + row);
+                var curRow = sheet.GetRow(START_BODY_ROW + row);
 
-                ICell snCell = curRow.GetCell(COL_PART_SN);
+                var snCell = curRow.GetCell(COL_PART_SN);
                 if (snCell != null)
                     snCell.SetCellValue(partSN);
 
-                ICell extendOfTestCell = curRow.GetCell(COL_EXTEND_OF_TEST);
+                var extendOfTestCell = curRow.GetCell(COL_EXTEND_OF_TEST);
                 if (extendOfTestCell != null)
                     extendOfTestCell.SetCellValue(extendOfTest);
 
-                ICell qtyCell = curRow.GetCell(COL_QUANTITY);
+                var qtyCell = curRow.GetCell(COL_QUANTITY);
                 if (qtyCell != null)
                     qtyCell.SetCellValue(1);
 
-                ICell locationCell = curRow.GetCell(COL_LOCATION);
+                var locationCell = curRow.GetCell(COL_LOCATION);
                 if (locationCell != null)
                     locationCell.SetCellValue("–");
 
-                ICell lengthCell = curRow.GetCell(COL_LENGTH);
+                var lengthCell = curRow.GetCell(COL_LENGTH);
                 if (lengthCell != null)
                     lengthCell.SetCellValue("–");
 
-                ICell widthCell = curRow.GetCell(COL_WIDTH);
+                var widthCell = curRow.GetCell(COL_WIDTH);
                 if (widthCell != null)
                     widthCell.SetCellValue("–");
 
-                ICell depthCell = curRow.GetCell(COL_DEPTH);
+                var depthCell = curRow.GetCell(COL_DEPTH);
                 if (depthCell != null)
                     depthCell.SetCellValue("–");
 
-                ICell areaCell = curRow.GetCell(COL_AREA);
+                var areaCell = curRow.GetCell(COL_AREA);
                 if (areaCell != null)
                     areaCell.SetCellValue("–");
 
-                ICell typeCell = curRow.GetCell(COL_TYPE);
+                var typeCell = curRow.GetCell(COL_TYPE);
                 if (typeCell != null)
                     typeCell.SetCellValue("–");
 
-                ICell accCell = curRow.GetCell(COL_ACCEPT);
+                var accCell = curRow.GetCell(COL_ACCEPT);
                 if (accCell != null)
                     accCell.SetCellValue("ü");
             }
@@ -221,7 +225,7 @@ namespace ExcelReporter
         }
 
         /// <summary>
-        /// Merge the SN field of these specified rows
+        ///     Merge the SN field of these specified rows
         /// </summary>
         /// <param name="rowStart"></param>
         /// <param name="rowEnd"></param>
@@ -236,40 +240,40 @@ namespace ExcelReporter
 
             // first is to make a check to make sure all the line has same SN
             IList<string> rowSNs = new List<string>();
-            for (int i = rowStart; i <= rowEnd; i++)
+            for (var i = rowStart; i <= rowEnd; i++)
             {
-                IRow curRow = this.sheet.GetRow(OutReport.START_BODY_ROW + i);
-                string sn = curRow.GetCell(COL_PART_SN).StringCellValue;
+                var curRow = sheet.GetRow(START_BODY_ROW + i);
+                var sn = curRow.GetCell(COL_PART_SN).StringCellValue;
                 rowSNs.Add(sn);
             }
 
             if (rowSNs.Distinct().Count() > 1)
                 throw new MergeRowException("Rows must have same SN");
 
-            var mergedRegions = this.sheet.MergedRegions;
+            var mergedRegions = sheet.MergedRegions;
             var regionsToRemove = new List<int>();
 
             // remove the merged range from A-L (COL_PART_SN to COL_EXTEND_OF_TEST - 1) in every specified row
-            for (int i = rowStart; i <= rowEnd; i++)
+            for (var i = rowStart; i <= rowEnd; i++)
             {
                 // get the mergedRegion
-                int mergedRegionIndex = mergedRegions.FindIndex(
-                    x => x.FirstRow == OutReport.START_BODY_ROW + i &&
-                    x.LastRow == OutReport.START_BODY_ROW + i &&
-                    x.FirstColumn == COL_PART_SN &&
-                    x.LastColumn == COL_EXTEND_OF_TEST - 1);
+                var mergedRegionIndex = mergedRegions.FindIndex(
+                    x => x.FirstRow == START_BODY_ROW + i &&
+                         x.LastRow == START_BODY_ROW + i &&
+                         x.FirstColumn == COL_PART_SN &&
+                         x.LastColumn == COL_EXTEND_OF_TEST - 1);
                 regionsToRemove.Add(mergedRegionIndex);
             }
 
             if (regionsToRemove.Count > 0)
-                this.sheet.RemoveMergedRegions(regionsToRemove);
+                sheet.RemoveMergedRegions(regionsToRemove);
 
-            CellRangeAddress range = new CellRangeAddress(
+            var range = new CellRangeAddress(
                 rowStart + START_BODY_ROW,
                 rowEnd + START_BODY_ROW,
                 COL_PART_SN,
                 COL_EXTEND_OF_TEST - 1);
-            this.sheet.AddMergedRegion(range);
+            sheet.AddMergedRegion(range);
         }
     }
 }
