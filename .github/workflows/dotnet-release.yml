@@ -154,7 +154,7 @@ jobs:
         release_name="excel-reporter-${tag}-${Configuration,,}"
 
         # pack files
-        mv "${SignDir}/ExcelReporter.exe" "${ExcelReporterDir}/bin/${Configuration}/*"
+        mv "${SignDir}/ExcelReporter.exe" "${ExcelReporterDir}/bin/${Configuration}/ExcelReporter.exe"
         cd "${ExcelReporterDir}/bin/${Configuration}/" && 7z a -tzip "../../../${release_name}.zip" *
         cd "../../../"
         mv "${SignDir}/excel_reporter.msi" "${release_name}.msi"
